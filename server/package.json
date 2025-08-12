@@ -21,7 +21,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
     "morgan": "^1.10.1",
-    "node-thermal-printer": "^4.5.0"
+    "node-thermal-printer": "^4.5.0",
+    "pdf-to-printer": "^5.6.0",
+    "pdfkit": "^0.17.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
