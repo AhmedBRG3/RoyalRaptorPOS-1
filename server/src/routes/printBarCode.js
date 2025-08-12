@@ -3,6 +3,7 @@ const { exec, execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const bwipjs = require("bwip-js");
 
 const router = express.Router();
 
@@ -43,8 +44,6 @@ function findXPrinter() {
 
     const selectedPrinter = printers[0];
     console.log(`Found XPrinter: "${selectedPrinter}"`);
-    console.log(`All XPrinters found: [${printers.map(p => `"${p}"`).join(", ")}]`);
-
     return selectedPrinter;
   } catch (error) {
     console.error("Error finding XPrinter:", error.message);
@@ -76,24 +75,36 @@ function isValidBarcode(code, type = "CODE128") {
   }
 }
 
-// Generate TSPL barcode content
-function generateTSPL(code, barcodeType = "EAN13", copies = 1) {
-  return `SIZE 40 mm,30 mm
-GAP 2 mm,0 mm
-CLS
-BARCODE 50,50,"128",100,1,0,2,2,"${code}"
-PRINT 1,${copies}`;
+// Generate barcode image (cross-platform)
+async function generateBarcodeImage(code, barcodeType, filePath) {
+  return new Promise((resolve, reject) => {
+    bwipjs.toBuffer(
+      {
+        bcid: barcodeType.toLowerCase(), // code128, ean13, upc, etc.
+        text: code,
+        scale: 3,
+        height: 10,
+        includetext: true,
+        textxalign: "center",
+      },
+      (err, png) => {
+        if (err) return reject(err);
+        fs.writeFileSync(filePath, png);
+        resolve();
+      }
+    );
+  });
 }
 
-router.post("/", (req, res) => {
-  const { code, barcodeType = "CODE128", copies = 1 } = req.body;
+router.post("/", async (req, res) => {
+  const { code, barcodeType = "code128", copies = 1 } = req.body;
   const platform = os.platform();
 
   if (!code) {
     return res.status(400).json({ error: "No code provided" });
   }
 
-  if (!isValidBarcode(code, barcodeType)) {
+  if (!isValidBarcode(code, barcodeType.toUpperCase())) {
     return res.status(400).json({ error: "Invalid barcode format" });
   }
 
@@ -103,33 +114,19 @@ router.post("/", (req, res) => {
 
   try {
     const printerName = findXPrinter();
-    const tspl = generateTSPL(code, barcodeType, copies);
 
-    // Save file locally (absolute path)
-    const tmpFile = path.resolve(`barcode_${Date.now()}.txt`);
-    fs.writeFileSync(tmpFile, tspl, { encoding: "utf8" });
-
-    console.log("Barcode file created at:", tmpFile);
+    // Create image file in current directory
+    const tmpFile = path.resolve(`barcode_${Date.now()}.png`);
+    await generateBarcodeImage(code, barcodeType, tmpFile);
+    console.log("Barcode image created at:", tmpFile);
 
     let printCmd;
     if (platform === "win32") {
-      // Get exact case-sensitive printer name
-      const winOutput = execSync("wmic printer get name", { encoding: "utf8" });
-      const exactName = winOutput
-        .split("\n")
-        .map(line => line.trim())
-        .filter(name => name.toLowerCase().includes("xprint"))[0];
-
-      if (!exactName) {
-        throw new Error("No XPrinter found on Windows");
-      }
-
-      const escapedPrinterName = exactName.replace(/"/g, '""');
-
-      // Prefer lpr if available
-      printCmd = `notepad /p "${tmpFile}"`
+      // Use mspaint /pt for silent printing to a named printer
+      printCmd = `mspaint /pt "${tmpFile}" "${printerName}"`;
     } else {
-      printCmd = `lp -d "${printerName}" -o raw "${tmpFile}"`;
+      // Use lp for macOS / Linux
+      printCmd = `lp -d "${printerName}" "${tmpFile}"`;
     }
 
     // Debug: list printers
@@ -145,7 +142,6 @@ router.post("/", (req, res) => {
 
         console.log("Print job sent:", stdout);
 
-        // Delay deletion for spooler to read file
         setTimeout(() => {
           try {
             fs.unlinkSync(tmpFile);
