@@ -102,7 +102,7 @@ export default function Cart({ cart = [], setCart }) {
   `;
 
     // Open small hidden print window
-    const printWin = window.open("", "_blank", "width=1,height=1,left=0,top=0");
+    const printWin = window.open("", "_blank", "width=600,height=800,left=0,top=0");
     printWin.document.open();
     printWin.document.write(receiptHTML);
     printWin.document.close();
