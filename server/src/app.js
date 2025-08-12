@@ -28,7 +28,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 // Express v5 no longer needs a global options wildcard; cors handles preflight
 app.use(morgan("dev"));
-app.use(express.json());
+// Increase body size to allow base64-encoded SVG/PNG payloads from client barcode
+app.use(express.json({ limit: "4mb" }));
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "RoyalRaptorPOS" });

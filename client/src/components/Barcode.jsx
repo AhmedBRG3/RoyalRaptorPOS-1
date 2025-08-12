@@ -16,10 +16,21 @@ function Barcode({ value }) {
 
   const printCode = async () => {
     try {
+      // Serialize current SVG to a compact data URL (SVG). Backend will rasterize/normalize.
+      const svgEl = svgRef.current;
+      if (!svgEl) throw new Error("Barcode SVG not ready");
+      // Ensure xmlns for correct SVG serialization
+      if (!svgEl.getAttribute("xmlns")) {
+        svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      }
+      const svgString = new XMLSerializer().serializeToString(svgEl);
+      const base64 = btoa(unescape(encodeURIComponent(svgString)));
+      const imageDataUrl = `data:image/svg+xml;base64,${base64}`;
+
       const res = await fetch("http://localhost:5050/api/barcode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: value }),
+        body: JSON.stringify({ code: value, image: imageDataUrl }),
       });
       if (res.ok) {
         alert("Print job sent!");
