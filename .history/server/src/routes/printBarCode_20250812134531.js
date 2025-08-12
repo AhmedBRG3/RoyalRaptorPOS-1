@@ -54,8 +54,8 @@ async function generateBarcodeImage(code, barcodeType, filePath) {
     bwipjs.toBuffer({
       bcid: barcodeType.toLowerCase(),
       text: code,
-      scale: 2,
-      height: 8,
+      scale: 3,
+      height: 10,
       includetext: true,
       textxalign: "center",
     }, (err, png) => {
