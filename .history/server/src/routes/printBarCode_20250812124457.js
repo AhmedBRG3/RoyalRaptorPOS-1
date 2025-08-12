@@ -127,7 +127,17 @@ router.post("/", (req, res) => {
       const escapedPrinterName = exactName.replace(/"/g, '""');
 
       // Prefer lpr if available
-      printCmd = `notepad /p "${tmpFile}"`
+      let lprAvailable = false;
+      try {
+        execSync("where lpr", { stdio: "ignore" });
+        lprAvailable = true;
+      } catch (e) {}
+
+      if (lprAvailable) {
+        printCmd = `lpr -S localhost -P "${escapedPrinterName}" "${tmpFile}"`;
+      } else {
+        printCmd = `print /D:"${escapedPrinterName}" "${tmpFile}"`;
+      }
     } else {
       printCmd = `lp -d "${printerName}" -o raw "${tmpFile}"`;
     }
