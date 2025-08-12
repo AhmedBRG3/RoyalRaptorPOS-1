@@ -1,0 +1,21 @@
+.receipt {
+  left: 0;
+  top: 0;
+  transform: scale(0.6);
+  page-break-after: avoid;
+  page-break-inside: avoid;
+  page-break-before: avoid;
+}
+table,
+td {
+  text-align: left;
+  border-collapse: collapse;
+}
+
+td {
+  padding: 0.5em;
+}
+@page {
+  size: auto;
+  margin: 0mm;
+}
