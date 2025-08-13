@@ -5,7 +5,7 @@ const Session = require('../models/Session');
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/config');
 
 function signToken(user) {
-  return jwt.sign({ sub: user.id, username: user.username, admin: !!user.admin }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign({ sub: user.id, username: user.username, admin: !!user.admin, finance: !!user.finance }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
 async function register(req, res, next) {
@@ -15,9 +15,9 @@ async function register(req, res, next) {
     const existing = await User.findOne({ username: username.toLowerCase() });
     if (existing) return res.status(409).json({ message: 'username already exists' });
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ username: username.toLowerCase(), passwordHash, admin: false });
+    const user = await User.create({ username: username.toLowerCase(), passwordHash, admin: false, finance: false });
     const token = signToken(user);
-    res.status(201).json({ token, user: { id: user.id, username: user.username, admin: user.admin } });
+    res.status(201).json({ token, user: { id: user.id, username: user.username, admin: user.admin, finance: user.finance } });
   } catch (err) {
     next(err);
   }
@@ -34,7 +34,7 @@ async function login(req, res, next) {
     // close any previous open sessions for this user just in case
     await Session.updateMany({ user: user._id, isOpen: true }, { isOpen: false, endTime: new Date() });
     const session = await Session.create({ user: user._id, startingBalance: Number(startingBalance || 0), endingBalance: Number(startingBalance || 0), isOpen: true });
-    res.json({ token, user: { id: user.id, username: user.username, admin: user.admin }, sessionId: session.id });
+    res.json({ token, user: { id: user.id, username: user.username, admin: user.admin, finance: user.finance }, sessionId: session.id });
   } catch (err) {
     next(err);
   }

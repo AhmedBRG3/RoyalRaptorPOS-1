@@ -11,6 +11,8 @@ import UsersAdmin from "./pages/UsersAdmin.jsx";
 import RequireAdmin from "./components/RequireAdmin.jsx";
 import Sessions from "./pages/Sessions.jsx";
 import ProductsAdmin from "./pages/ProductsAdmin.jsx";
+import Finance from "./pages/Finance.jsx";
+import RequireFinance from "./components/RequireFinance.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -54,6 +56,16 @@ createRoot(document.getElementById("root")).render(
               <RequireAdmin>
                 <Sessions />
               </RequireAdmin>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/finance"
+          element={
+            <RequireAuth>
+              <RequireFinance>
+                <Finance />
+              </RequireFinance>
             </RequireAuth>
           }
         />

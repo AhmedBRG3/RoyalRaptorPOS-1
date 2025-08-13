@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import { fetchSales, refundSale } from "../api";
 import Topbar from "../components/Topbar";
-import { User, DollarSign, Percent, BadgeDollarSign, Receipt, CheckCircle2, XCircle, RotateCcw } from "lucide-react";
+import {
+  User,
+  DollarSign,
+  Percent,
+  BadgeDollarSign,
+  Receipt,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+} from "lucide-react";
 
 export default function Sales() {
   const [sales, setSales] = useState([]);
@@ -44,7 +53,9 @@ export default function Sales() {
   return (
     <div className="p-4 mt-24">
       <Topbar />
-      <h2 className="text-2xl font-bold mt-6 mx-12 flex items-center gap-2"><Receipt className="w-6 h-6" /> Sales</h2>
+      <h2 className="text-2xl font-bold mt-6 mx-12 flex items-center gap-2">
+        <Receipt className="w-6 h-6" /> Sales
+      </h2>
 
       {loading ? (
         <p className="mt-4 text-gray-600">Loading…</p>
@@ -67,12 +78,12 @@ export default function Sales() {
                 </th>
                 <th className="text-center p-2 w-1/7">
                   <div className="flex items-center gap-1 justify-center">
-                    <Percent className="w-4 h-4" /> VAT
+                    <Percent className="w-4 h-4" /> VAT (Amount)
                   </div>
                 </th>
                 <th className="text-center p-2 w-1/7">
                   <div className="flex items-center gap-1 justify-center">
-                    <BadgeDollarSign className="w-4 h-4" /> Service Fee
+                    <BadgeDollarSign className="w-4 h-4" /> Service (Amount)
                   </div>
                 </th>
                 <th className="text-center p-2 w-1/7">
@@ -98,8 +109,12 @@ export default function Sales() {
                   key={s._id}
                   className="border-b border-gray-200 hover:bg-gray-50"
                 >
-                  <td className="p-2 w-1/7 text-center">{s.user?.username || "-"}</td>
-                  <td className="p-2 w-1/7 text-center">${s.total.toFixed(2)}</td>
+                  <td className="p-2 w-1/7 text-center">
+                    {s.user?.username || "-"}
+                  </td>
+                  <td className="p-2 w-1/7 text-center">
+                    ${s.total.toFixed(2)}
+                  </td>
                   <td className="p-2 w-1/7 text-center">
                     {(s.vat || 0).toFixed(2)}
                   </td>

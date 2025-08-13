@@ -3,7 +3,7 @@ const Product = require('../models/Product');
 
 async function listSales(req, res, next) {
   try {
-    const filter = req.user?.admin ? {} : { user: req.user?.sub };
+    const filter = (req.user?.admin || req.user?.finance) ? {} : { user: req.user?.sub };
     const sales = await Sale.find(filter).sort({ createdAt: -1 }).limit(100).populate('user', 'username');
     res.json(sales);
   } catch (e) {
@@ -28,12 +28,24 @@ async function createSale(req, res, next) {
       const p = productMap.get(i.productId);
       if (!p) return res.status(400).json({ message: `Invalid product: ${i.productId}` });
       const quantity = Math.max(1, Number(i.quantity || 1));
+    const available = Number(p.quantity ?? 0);
+    if (available <= 0) {
+      return res.status(400).json({ message: `${p.name} is out of stock` });
+    }
+    if (quantity > available) {
+      return res.status(400).json({ message: `Insufficient stock for ${p.name}. Available: ${available}, requested: ${quantity}` });
+    }
       const lineTotal = p.price * quantity;
       total += lineTotal;
       normalized.push({ product: p._id, name: p.name, price: p.price, quantity });
     }
 
-    const finalTotal = total + Number(vat || 0) + Number(serviceFee || 0);
+    // Treat vat and serviceFee as percentages of subtotal
+    const vatPct = Number(vat || 0);
+    const servicePct = Number(serviceFee || 0);
+    const vatAmount = total * (isNaN(vatPct) ? 0 : vatPct / 100);
+    const serviceAmount = total * (isNaN(servicePct) ? 0 : servicePct / 100);
+    const finalTotal = total + vatAmount + serviceAmount;
 
     // Update inventory
     for (const item of normalized) {
@@ -43,7 +55,7 @@ async function createSale(req, res, next) {
       );
     }
 
-    const sale = await Sale.create({ items: normalized, total, vat, serviceFee, finalTotal, user: req.user?.sub, session: req.headers['x-session-id'] || undefined });
+    const sale = await Sale.create({ items: normalized, total, vat: vatAmount, serviceFee: serviceAmount, finalTotal, user: req.user?.sub, session: req.headers['x-session-id'] || undefined });
     // Link sale to session and update ending balance if present
     const Session = require('../models/Session');
     const sessionId = req.headers['x-session-id'];

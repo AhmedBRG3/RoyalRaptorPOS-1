@@ -19,6 +19,11 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, requireAdmin };
+function requireFinance(req, res, next) {
+  if (!(req.user?.finance || req.user?.admin)) return res.status(403).json({ message: 'finance only' });
+  next();
+}
+
+module.exports = { requireAuth, requireAdmin, requireFinance };
 
 

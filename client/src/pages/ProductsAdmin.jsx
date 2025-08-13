@@ -6,6 +6,7 @@ import {
   deleteProduct,
 } from "../api";
 import Topbar from "../components/Topbar";
+import PrintSettingsModal from "../components/PrintSettingsModal";
 import {
   Plus,
   Save,
@@ -19,8 +20,10 @@ import {
   X,
   ScanBarcode,
   PenLine,
+  FileSpreadsheet,
 } from "lucide-react";
 import Barcode from "../components/Barcode";
+import { exportToCsv } from "../utils/exportCsv";
 
 export default function ProductsAdmin() {
   const [products, setProducts] = useState([]);
@@ -36,6 +39,7 @@ export default function ProductsAdmin() {
     sold: "",
   });
   const [editingId, setEditingId] = useState("");
+  const [showPrintSettings, setShowPrintSettings] = useState(false);
 
   const load = async () => {
     try {
@@ -121,9 +125,41 @@ export default function ProductsAdmin() {
     }
   };
 
+  const onExport = () => {
+    const rows = products.map((p) => ({
+      name: p.name,
+      sku: p.sku,
+      price: Number(p.price ?? 0).toFixed(2),
+      quantity: p.quantity ?? 0,
+      sold: p.sold ?? 0,
+    }));
+    exportToCsv("products.csv", rows, [
+      { key: "name", header: "Name" },
+      { key: "sku", header: "SKU" },
+      { key: "price", header: "Price" },
+      { key: "quantity", header: "Quantity" },
+      { key: "sold", header: "Sold" },
+    ]);
+  };
+
   return (
+    <>
     <div className="mt-24 grid gap-4 p-6">
       <Topbar />
+      <div className="flex justify-end gap-2">
+        <button
+          className="bg-white text-black text-sm px-3 py-2 rounded-lg shadow-sm transition-colors border"
+          onClick={() => setShowPrintSettings(true)}
+        >
+          Print Settings
+        </button>
+        <button
+          className="bg-emerald-500 text-white text-sm px-3 py-2 rounded-lg shadow-sm transition-colors border flex items-center gap-2"
+          onClick={onExport}
+        >
+          <FileSpreadsheet className="w-4 h-4" /> Export
+        </button>
+      </div>
 
       <h2 className="mb-8 text-2xl font-bold flex items-center gap-2">
         <Package className="w-6 h-6" aria-hidden="true" /> Manage Products
@@ -321,5 +357,9 @@ export default function ProductsAdmin() {
         </table>
       )}
     </div>
+    {showPrintSettings && (
+      <PrintSettingsModal open={showPrintSettings} onClose={() => setShowPrintSettings(false)} />
+    )}
+    </>
   );
 }

@@ -2,7 +2,7 @@ import SalePanel from "./SalePanel.jsx";
 import { Package, DollarSign, Plus, Minus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-export default function Cart({ cart = [], setCart }) {
+export default function Cart({ cart = [], setCart, onSaleCompleted, placeSaleRef }) {
   const [lastOrderId, setLastOrderId] = useState("");
   let user = null;
   try {
@@ -10,11 +10,11 @@ export default function Cart({ cart = [], setCart }) {
   } catch {}
   const username = user?.username || "";
 
-  const updateQty = (productId, delta) => {
+  const updateQty = (_id, delta) => {
     setCart((prev) =>
       prev
         .map((i) =>
-          i.productId === productId
+          i._id === _id
             ? { ...i, quantity: Math.max(1, i.quantity + delta) }
             : i
         )
@@ -22,8 +22,8 @@ export default function Cart({ cart = [], setCart }) {
     );
   };
 
-  const removeItem = (productId) => {
-    setCart((prev) => prev.filter((i) => i.productId !== productId));
+  const removeItem = (_id) => {
+    setCart((prev) => prev.filter((i) => i._id !== _id));
   };
 
   const total = useMemo(
@@ -88,10 +88,20 @@ export default function Cart({ cart = [], setCart }) {
         <div class="line"></div>
         <table>
           <tr>
-            <td class="total">Total</td>
-            <td class="total" style="text-align:right;">$${sale.total.toFixed(
-              2
-            )}</td>
+            <td>Subtotal</td>
+            <td style="text-align:right;">$${(sale.subtotal ?? sale.total).toFixed(2)}</td>
+          </tr>
+          ${typeof sale.vat === 'number' ? `<tr>
+            <td>VAT</td>
+            <td style="text-align:right;">$${sale.vat.toFixed(2)}</td>
+          </tr>` : ''}
+          ${typeof sale.serviceFee === 'number' ? `<tr>
+            <td>Service Fee</td>
+            <td style="text-align:right;">$${sale.serviceFee.toFixed(2)}</td>
+          </tr>` : ''}
+          <tr>
+            <td class="total">Final</td>
+            <td class="total" style="text-align:right;">$${(sale.finalTotal ?? sale.total).toFixed(2)}</td>
           </tr>
         </table>
         <div class="line"></div>
@@ -113,13 +123,14 @@ export default function Cart({ cart = [], setCart }) {
       printWin.print();
       printWin.close();
     };
+
   };
 
   return (
     <div className="cart w-500 h-auto border border-gray-500 p-5 rounded-lg shadow-xl bg-white">
       {cart.map((i) => (
         <div
-          key={i.productId}
+          key={i._id}
           className="flex items-center justify-between gap-2 py-2 border-b border-gray-100"
         >
           <div className="flex items-center gap-2">
@@ -135,14 +146,14 @@ export default function Cart({ cart = [], setCart }) {
           <div className="flex items-center gap-2 w-32 justify-center">
             <button
               className="btn bg-blue-400 text-white px-2 rounded-lg flex items-center justify-center"
-              onClick={() => updateQty(i.productId, -1)}
+              onClick={() => updateQty(i._id, -1)}
             >
               <Minus className="w-4 h-4" />
             </button>
             <span className="w-4 text-center font-bold">{i.quantity}</span>
             <button
               className="btn bg-blue-400 text-white px-2 rounded-lg flex items-center justify-center"
-              onClick={() => updateQty(i.productId, 1)}
+              onClick={() => updateQty(i._id, 1)}
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -153,7 +164,7 @@ export default function Cart({ cart = [], setCart }) {
           </div>
           <button
             className="btn text-xs bg-red-400 text-white p-1.5 rounded-xl flex items-center justify-center"
-            onClick={() => removeItem(i.productId)}
+            onClick={() => removeItem(i._id)}
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -173,9 +184,16 @@ export default function Cart({ cart = [], setCart }) {
           setLastOrderId(sale._id);
           printReceipt({
             _id: sale._id,
-            items: cart,
-            total: total,
+            items: sale.items?.length ? sale.items : cart,
+            subtotal: sale.total,
+            vat: sale.vat,
+            serviceFee: sale.serviceFee,
+            finalTotal: sale.finalTotal,
           });
+          onSaleCompleted?.();
+        }}
+        registerPlaceSale={(fn) => {
+          if (placeSaleRef) placeSaleRef.current = fn;
         }}
       />
 

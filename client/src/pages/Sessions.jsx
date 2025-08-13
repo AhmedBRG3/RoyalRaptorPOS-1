@@ -72,7 +72,7 @@ export default function Sessions() {
                   <tr className="border-b border-gray-200">
                     <th className="w-1/3 text-center p-2 text-sm font-medium text-gray-600">
                       <div className="flex items-center gap-1 justify-center">
-                        <Receipt className="w-4 h-4" /> Sale ID
+                        <Receipt className="w-4 h-4" /> Items
                       </div>
                     </th>
                     <th className="w-1/3 text-center p-2 text-sm font-medium text-gray-600">
@@ -93,21 +93,32 @@ export default function Sessions() {
                       key={sale._id}
                       className="hover:bg-gray-50 transition-colors"
                     >
-                      <td className="w-1/3 text-center p-2 text-sm">{sale._id}</td>
+                      <td className="w-1/3 text-center p-2 text-sm">{(sale.items || []).reduce((a, i) => a + (i.quantity || 0), 0)}</td>
                       <td className="w-1/3 text-center p-2 text-sm">
                         ${Number(sale.finalTotal).toFixed(2)}
                       </td>
                       <td
-                        className={`w-1/3 text-center p-2 text-sm font-medium flex items-center gap-1 justify-center ${
+                        className={`w-1/3 text-center p-2 text-sm font-medium ${
                           sale.refunded
                             ? "text-red-600"
                             : "text-green-600"
                         }`}
                       >
-                        {sale.refunded ? <><XCircle className="w-4 h-4" /> Refunded</> : <><CheckCircle2 className="w-4 h-4" /> Completed</>}
+                        {sale.refunded ? <> Refunded</> : <>Completed</>}
                       </td>
                     </tr>
                   ))}
+                  {(s.sales || []).length > 0 && (
+                    <tr className="border-t border-gray-200 font-semibold">
+                      <td className="w-1/3 text-center p-2 text-sm">
+                        {(s.sales || []).filter(sl => !sl.refunded).reduce((a, sl) => a + (sl.items || []).reduce((ci, i) => ci + (i.quantity || 0), 0), 0)}
+                      </td>
+                      <td className="w-1/3 text-center p-2 text-sm">
+                        ${((s.sales || []).filter(sl => !sl.refunded).reduce((a, sl) => a + Number(sl.finalTotal || 0), 0)).toFixed(2)}
+                      </td>
+                      <td className="w-1/3 text-center p-2 text-sm"></td>
+                    </tr>
+                  )}
                   {(s.sales || []).length === 0 && (
                     <tr>
                       <td

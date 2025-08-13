@@ -12,12 +12,21 @@ import {
   Trash2,
 } from "lucide-react";
 import Cart from "./components/Cart.jsx";
+import { use } from "react";
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cart, setCart] = useState([]); // [{ productId, name, price, quantity }]
-
+  console.error(
+    "THIS APP IS MADE BY OMAR ALHUSSENI, IG @omaralhusseni, omar.alhusseni@icloud.com"
+  );
+  console.warn(
+    "THIS APP IS MADE BY OMAR ALHUSSENI, IG @omaralhusseni, omar.alhusseni@icloud.com"
+  );
+  console.log(
+    "THIS APP IS MADE BY OMAR ALHUSSENI, IG @omaralhusseni, omar.alhusseni@icloud.com"
+  );
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -36,22 +45,55 @@ function App() {
     };
   }, []);
 
-  const addToCart = (p) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.productId === p._id);
-      if (existing) {
-        return prev.map((i) =>
-          i.productId === p._id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [
-        ...prev,
-        { productId: p._id, name: p.name, price: p.price, quantity: 1 },
-      ];
-    });
-  };
+  const cartRef = useRef([]);
 
+  const addToCart = (p) => {
+    if (!p) return;
+
+    // Block adding items that are out of stock
+    if ((p.quantity ?? 0) <= 0) {
+      alert(`${p.name} is out of stock`);
+      return;
+    }
+
+    // Find if it exists in our ref cart (not the state)
+    const existing = cartRef.current.find(
+      (i) => String(i._id) === String(p._id)
+    );
+
+    if ((p.quantity ?? 0) < 5) {
+      alert(`Low stock: Only ${p.quantity ?? 0} left for ${p.name}`);
+    }
+
+    let updatedCart;
+    if (existing) {
+      updatedCart = cartRef.current.map((i) =>
+        String(i._id) === String(p._id) ? { ...i, quantity: i.quantity + 1 } : i
+      );
+    } else {
+      updatedCart = [...cartRef.current, { ...p, quantity: 1 }];
+    }
+
+    // Update both the ref and the state
+    cartRef.current = updatedCart;
+    setCart(updatedCart);
+  };
+  useEffect(() => {
+    console.log("Cart", cart);
+  }, [cart]);
   const [q, setQ] = useState("");
+  const placeSaleRef = useRef(null);
+  const refreshProducts = async () => {
+    try {
+      const list = await fetchProducts(q);
+      setProducts(list);
+    } catch (e) {
+      // ignore refresh errors silently
+    }
+
+    setCart([]);
+    cartRef.current = [];
+  };
   const onSearch = async (e) => {
     e?.preventDefault?.();
     try {
@@ -72,6 +114,10 @@ function App() {
   }, [products]);
 
   useEffect(() => {
+    cartRef.current = cart
+  }, [cart])
+
+  useEffect(() => {
     let buffer = "";
     let lastTime = Date.now();
 
@@ -83,8 +129,33 @@ function App() {
       if (e.key === "Enter") {
         if (buffer) {
           console.log("Scanned barcode:", buffer);
-          console.log(productsRef.current); // always latest value
-          addToCart(productsRef.current.find((p) => p.sku == buffer));
+          const found = productsRef.current.find((p) => p.sku == buffer);
+          if (found) {
+            console.log("found", found);
+            addToCart(found);
+          } else {
+            alert(`No product found for barcode: ${buffer}`);
+          }
+          // prevent focused element from receiving implicit click on Enter
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            document.activeElement &&
+              document.activeElement.blur &&
+              document.activeElement.blur();
+          } catch {}
+        } else {
+          // If Enter is pressed without a scanner buffer, attempt to place the sale
+          if (placeSaleRef.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              document.activeElement &&
+                document.activeElement.blur &&
+                document.activeElement.blur();
+            } catch {}
+            placeSaleRef.current();
+          }
         }
         buffer = "";
       } else if (e.key.length === 1) {
@@ -119,17 +190,23 @@ function App() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="w-6 h-6 text-blue-500" />
-                  <span className="font-semibold text-lg text-ellipsis text-pretty">{p.name}</span>
+                  <span className="font-semibold text-lg text-ellipsis text-pretty">
+                    {p.name}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
                   <Hash className="w-4 h-4" />
                   {p.sku}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Qty: {p.quantity ?? 0}
                 </div>
                 <div className="flex items-center gap-1 mt-2 text-xl font-bold text-green-600">
                   <DollarSign className="w-5 h-5" />
                   {p.price.toFixed(2)}
                 </div>
                 <button
+                  type="button"
                   className="mt-4 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg flex items-center gap-2 w-full justify-center transition-colors"
                   onClick={() => addToCart(p)}
                 >
@@ -147,7 +224,12 @@ function App() {
           {cart.length === 0 ? (
             <p>No items in cart</p>
           ) : (
-            <Cart cart={cart} setCart={setCart} />
+            <Cart
+              cart={cart}
+              setCart={setCart}
+              onSaleCompleted={refreshProducts}
+              placeSaleRef={placeSaleRef}
+            />
           )}
         </div>
       </div>
