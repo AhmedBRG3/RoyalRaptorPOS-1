@@ -31,6 +31,7 @@ export default function ProductsAdmin() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [editPassword, setEditPassword] = useState("");
   const [form, setForm] = useState({
     name: "",
     sku: "",
@@ -40,6 +41,12 @@ export default function ProductsAdmin() {
   });
   const [editingId, setEditingId] = useState("");
   const [showPrintSettings, setShowPrintSettings] = useState(false);
+
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("user"));
+  } catch {}
+  const isAdmin = !!user?.admin;
 
   const load = async () => {
     try {
@@ -83,13 +90,13 @@ export default function ProductsAdmin() {
 
     try {
       if (editingId) {
-        await updateProduct(editingId, payload);
+        await updateProduct(editingId, payload, isAdmin ? undefined : editPassword);
         setProducts((prev) =>
           prev.map((p) => (p._id === editingId ? { ...p, ...payload } : p))
         );
         setSuccess("Product updated successfully.");
       } else {
-        const newProduct = await createProduct(payload);
+        const newProduct = await createProduct(payload, isAdmin ? undefined : editPassword);
         setProducts((prev) => [...prev, newProduct]);
         setSuccess("Product added successfully.");
       }
@@ -117,7 +124,7 @@ export default function ProductsAdmin() {
     setError("");
     setSuccess("");
     try {
-      await deleteProduct(id);
+      await deleteProduct(id, isAdmin ? undefined : editPassword);
       setProducts((prev) => prev.filter((p) => p._id !== id));
       setSuccess("Product deleted successfully.");
     } catch {
@@ -184,6 +191,22 @@ export default function ProductsAdmin() {
             className="border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </label>
+
+        {!isAdmin && (
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium flex items-center gap-1">
+              Edit Password
+            </span>
+            <input
+              type="password"
+              value={editPassword}
+              onChange={(e) => setEditPassword(e.target.value)}
+              placeholder="Required for non-admin edits"
+              disabled={saving}
+              className="border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </label>
+        )}
 
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium flex items-center gap-1">

@@ -143,7 +143,7 @@ function App() {
             document.activeElement &&
               document.activeElement.blur &&
               document.activeElement.blur();
-          } catch {}
+          } catch { }
         } else {
           // If Enter is pressed without a scanner buffer, attempt to place the sale
           if (placeSaleRef.current) {
@@ -153,7 +153,7 @@ function App() {
               document.activeElement &&
                 document.activeElement.blur &&
                 document.activeElement.blur();
-            } catch {}
+            } catch { }
             placeSaleRef.current();
           }
         }
@@ -186,28 +186,26 @@ function App() {
             {products.map((p) => (
               <div
                 key={p._id}
-                className="border border-gray-200 rounded-lg p-3 w-[200px] bg-white shadow hover:shadow-lg transition-shadow flex flex-col items-center"
+                className="border  p-8 border-gray-200 rounded-lg w-[200px] bg-white shadow hover:shadow-lg transition-shadow flex flex-col items-center"
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <Package className="w-6 h-6 text-blue-500" />
-                  <span className="font-semibold text-lg text-ellipsis text-pretty">
+                  <span className="font-semibold text-sm text-ellipsis text-wrap">
                     {p.name}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                <div className="flex items-center gap-1 text-xs text-gray-500 ">
                   <Hash className="w-4 h-4" />
                   {p.sku}
                 </div>
                 <div className="text-xs text-gray-500">
                   Qty: {p.quantity ?? 0}
                 </div>
-                <div className="flex items-center gap-1 mt-2 text-xl font-bold text-green-600">
-                  <DollarSign className="w-5 h-5" />
+                <div className="flex mb-2 items-center gap-1 mt-2 text-xl font-bold text-green-600">
                   {p.price.toFixed(2)}
                 </div>
                 <button
                   type="button"
-                  className="mt-4 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg flex items-center gap-2 w-full justify-center transition-colors"
+                  className="mt-auto bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg flex items-center gap-2 w-full justify-center transition-colors"
                   onClick={() => addToCart(p)}
                 >
                   <Plus className="w-4 h-4" />

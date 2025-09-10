@@ -13,11 +13,20 @@ import Sessions from "./pages/Sessions.jsx";
 import ProductsAdmin from "./pages/ProductsAdmin.jsx";
 import Finance from "./pages/Finance.jsx";
 import RequireFinance from "./components/RequireFinance.jsx";
+import HomePage from "./pages/Home.jsx";
+import BusSolutions from "./pages/BusSolutions.jsx"
+import Marketing from "./pages/Marketing.jsx"
+import BusSetup from "./pages/BusSetup.jsx"
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
+        <Route path="/home12" element={<HomePage />} />
+        <Route path="/setup" element={<BusSetup />} />
+        <Route path="/marketing" element={<Marketing />} />
+        <Route path="/solutions" element={<BusSolutions />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
@@ -42,9 +51,7 @@ createRoot(document.getElementById("root")).render(
           path="/manageProducts"
           element={
             <RequireAuth>
-              <RequireAdmin>
-                <ProductsAdmin />
-              </RequireAdmin>
+              <ProductsAdmin />
             </RequireAuth>
           }
         />

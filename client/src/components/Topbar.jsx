@@ -96,6 +96,13 @@ export default function Topbar({
             Sales
           </NavButton>
 
+          <NavButton
+            href="/manageProducts"
+            icon={<Package className="w-4 h-4 mr-1" />}
+          >
+            Products
+          </NavButton>
+
           {isAdmin && (
             <>
               <NavButton
@@ -109,12 +116,6 @@ export default function Topbar({
                 icon={<UserCircle2 className="w-4 h-4 mr-1" />}
               >
                 Sessions
-              </NavButton>
-              <NavButton
-                href="/manageProducts"
-                icon={<Package className="w-4 h-4 mr-1" />}
-              >
-                Products
               </NavButton>
             </>
           )}

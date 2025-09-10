@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchSessions } from "../api";
 import Topbar from "../components/Topbar";
-import { User, Clock, DollarSign, CheckCircle2, XCircle, Receipt } from "lucide-react";
+import { User, Clock, DollarSign, CheckCircle2, XCircle, Receipt, Download } from "lucide-react";
+import { exportToCsv } from "../utils/exportCsv";
 
 export default function Sessions() {
   const [sessions, setSessions] = useState([]);
@@ -24,10 +25,55 @@ export default function Sessions() {
     load();
   }, []);
 
+  const handleExport = () => {
+    const exportData = sessions.map(session => {
+      const totalItems = (session.sales || []).filter(sl => !sl.refunded).reduce((a, sl) => a + (sl.items || []).reduce((ci, i) => ci + (i.quantity || 0), 0), 0);
+      const totalRevenue = (session.sales || []).filter(sl => !sl.refunded).reduce((a, sl) => a + Number(sl.finalTotal || 0), 0);
+      
+      return {
+        username: session.user?.username || 'Unknown',
+        startTime: new Date(session.startTime).toLocaleString(),
+        endTime: session.endTime ? new Date(session.endTime).toLocaleString() : 'Open',
+        startingBalance: Number(session.startingBalance).toFixed(2),
+        endingBalance: Number(session.endingBalance).toFixed(2),
+        totalSales: session.sales?.length || 0,
+        totalItems: totalItems,
+        totalRevenue: totalRevenue.toFixed(2),
+        status: session.endTime ? 'Closed' : 'Open'
+      };
+    });
+
+    const columns = [
+      { key: 'username', header: 'User' },
+      { key: 'startTime', header: 'Start Time' },
+      { key: 'endTime', header: 'End Time' },
+      { key: 'startingBalance', header: 'Starting Balance' },
+      { key: 'endingBalance', header: 'Ending Balance' },
+      { key: 'totalSales', header: 'Total Sales' },
+      { key: 'totalItems', header: 'Total Items' },
+      { key: 'totalRevenue', header: 'Total Revenue' },
+      { key: 'status', header: 'Status' }
+    ];
+
+    exportToCsv('sessions-export.csv', exportData, columns);
+  };
+
   return (
     <div className="p-4">
       <Topbar />
-      <h2 className="mt-16 text-2xl font-bold flex items-center gap-2"><Clock className="w-6 h-6" /> Sessions</h2>
+      <div className="mt-16 flex justify-between items-center">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <Clock className="w-6 h-6" /> Sessions
+        </h2>
+        <button
+          onClick={handleExport}
+          disabled={loading || sessions.length === 0}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Export
+        </button>
+      </div>
 
       {loading ? (
         <p className="mt-6 text-gray-500">Loading…</p>

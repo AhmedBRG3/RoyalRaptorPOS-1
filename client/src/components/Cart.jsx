@@ -2,7 +2,12 @@ import SalePanel from "./SalePanel.jsx";
 import { Package, DollarSign, Plus, Minus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-export default function Cart({ cart = [], setCart, onSaleCompleted, placeSaleRef }) {
+export default function Cart({
+  cart = [],
+  setCart,
+  onSaleCompleted,
+  placeSaleRef,
+}) {
   const [lastOrderId, setLastOrderId] = useState("");
   let user = null;
   try {
@@ -33,6 +38,7 @@ export default function Cart({ cart = [], setCart, onSaleCompleted, placeSaleRef
 
   const printReceipt = (sale) => {
     const date = new Date().toLocaleString();
+    console.log(sale);
 
     // Build the HTML with fixed page size for thermal printer
     const receiptHTML = `
@@ -89,22 +95,35 @@ export default function Cart({ cart = [], setCart, onSaleCompleted, placeSaleRef
         <table>
           <tr>
             <td>Subtotal</td>
-            <td style="text-align:right;">$${(sale.subtotal ?? sale.total).toFixed(2)}</td>
+            <td style="text-align:right;">$${(
+              sale.subtotal ?? sale.total
+            ).toFixed(2)}</td>
           </tr>
-          ${typeof sale.vat === 'number' ? `<tr>
+          ${
+            typeof sale.vat === "number"
+              ? `<tr>
             <td>VAT</td>
             <td style="text-align:right;">$${sale.vat.toFixed(2)}</td>
-          </tr>` : ''}
-          ${typeof sale.serviceFee === 'number' ? `<tr>
+          </tr>`
+              : ""
+          }
+          ${
+            typeof sale.serviceFee === "number"
+              ? `<tr>
             <td>Service Fee</td>
             <td style="text-align:right;">$${sale.serviceFee.toFixed(2)}</td>
-          </tr>` : ''}
+          </tr>`
+              : ""
+          }
           <tr>
             <td class="total">Final</td>
-            <td class="total" style="text-align:right;">$${(sale.finalTotal ?? sale.total).toFixed(2)}</td>
+            <td class="total" style="text-align:right;">$${(
+              sale.finalTotal ?? sale.total
+            ).toFixed(2)}</td>
           </tr>
         </table>
         <div class="line"></div>
+        <div style="text-align:center;">Sale #${sale._id?.slice(-4)}</div>
         <div style="text-align:center;">Thank you for your purchase!</div>
         </div>
       </body>
@@ -112,7 +131,11 @@ export default function Cart({ cart = [], setCart, onSaleCompleted, placeSaleRef
   `;
 
     // Open small hidden print window
-    const printWin = window.open("", "_blank", "width=600,height=800,left=0,top=0");
+    const printWin = window.open(
+      "",
+      "_blank",
+      "width=600,height=800,left=0,top=0"
+    );
     printWin.document.open();
     printWin.document.write(receiptHTML);
     printWin.document.close();
@@ -123,7 +146,6 @@ export default function Cart({ cart = [], setCart, onSaleCompleted, placeSaleRef
       printWin.print();
       printWin.close();
     };
-
   };
 
   return (

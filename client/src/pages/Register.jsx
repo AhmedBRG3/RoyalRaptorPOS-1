@@ -4,7 +4,7 @@ import { register } from "../api";
 import { User, Key, UserPlus } from "lucide-react";
 
 export default function Register() {
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "", masterPassword: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export default function Register() {
     setError("");
     try {
       setLoading(true);
-      await register(form.username, form.password);
+      await register(form.username, form.password, form.masterPassword);
       navigate("/", { replace: true });
     } catch (e) {
       setError("Registration failed");
@@ -45,6 +45,17 @@ export default function Register() {
             type="password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+            className="border rounded-md px-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+          />
+        </div>
+        <div className="relative">
+          <Key className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            placeholder="Master Password"
+            type="password"
+            value={form.masterPassword}
+            onChange={(e) => setForm({ ...form, masterPassword: e.target.value })}
             required
             className="border rounded-md px-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />

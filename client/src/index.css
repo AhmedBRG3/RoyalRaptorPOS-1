@@ -1,7 +1,65 @@
+@import url(//fonts.googleapis.com/earlyaccess/kopubbatang.css);
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-html, body, #root {
+
+html,
+body,
+#root {
   height: 100%;
   margin: 0;
+}
+
+.home {
+  font-family: "Allerta", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
+.kkfont * {
+ font-family: 'KoPub Batang', serif;
+}
+
+/** 이하는 공통 **/
+.normal {
+ font-style: normal;
+}
+
+.w250 {
+ font-weight: 250;
+}
+
+.w300 {
+ font-weight: 300;
+}
+
+.w350 {
+ font-weight: 350;
+}
+
+.w400 {
+ font-weight: 400;
+}
+
+.w500 {
+ font-weight: 500;
+}
+
+.w700 {
+ font-weight: 700;
+}
+
+.w800 {
+ font-weight: 800;
+}
+
+.w900 {
+ font-weight: 900;
+}
+
+li span {
+ line-height: 1.8;
+ font-size: 1.3em;
 }

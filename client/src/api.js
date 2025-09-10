@@ -16,18 +16,21 @@ export async function fetchProducts(q) {
   return data;
 }
 
-export async function createProduct(product) {
-  const { data } = await api.post('/products', product);
+export async function createProduct(product, editPassword) {
+  const headers = editPassword ? { 'X-Edit-Password': editPassword } : undefined;
+  const { data } = await api.post('/products', product, { headers });
   return data;
 }
 
-export async function updateProduct(id, updates) {
-  const { data } = await api.put(`/products/${id}`, updates);
+export async function updateProduct(id, updates, editPassword) {
+  const headers = editPassword ? { 'X-Edit-Password': editPassword } : undefined;
+  const { data } = await api.put(`/products/${id}`, updates, { headers });
   return data;
 }
 
-export async function deleteProduct(id) {
-  await api.delete(`/products/${id}`);
+export async function deleteProduct(id, editPassword) {
+  const headers = editPassword ? { 'X-Edit-Password': editPassword } : undefined;
+  await api.delete(`/products/${id}`, { headers });
 }
 
 export async function login(username, password, startingBalance) {
@@ -40,8 +43,8 @@ export async function login(username, password, startingBalance) {
   return data;
 }
 
-export async function register(username, password) {
-  const { data } = await api.post('/auth/register', { username, password });
+export async function register(username, password, masterPassword) {
+  const { data } = await api.post('/auth/register', { username, password, masterPassword });
   localStorage.setItem('token', data.token);
   localStorage.setItem('user', JSON.stringify(data.user));
   return data;
