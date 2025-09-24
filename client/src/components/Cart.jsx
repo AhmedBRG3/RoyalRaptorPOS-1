@@ -31,6 +31,28 @@ export default function Cart({
     setCart((prev) => prev.filter((i) => i._id !== _id));
   };
 
+  const updatePrice = (_id, price) => {
+    setCart((prev) =>
+      prev.map((i) =>
+        i._id === _id
+          ? {
+              ...i,
+              // Determine ceiling as original/base price; fallback to current when unknown
+              price: (() => {
+                const ceiling = typeof i.originalPrice === 'number'
+                  ? i.originalPrice
+                  : (typeof i.basePrice === 'number' ? i.basePrice : i.price);
+                const floor = typeof i.minPrice === 'number' ? i.minPrice : 0;
+                const requested = Number(price || 0);
+                return Math.max(floor, Math.min(ceiling, requested));
+              })(),
+              originalPrice: typeof i.originalPrice === 'number' ? i.originalPrice : (typeof i.basePrice === 'number' ? i.basePrice : i.price)
+            }
+          : i
+      )
+    );
+  };
+
   const total = useMemo(
     () => cart.reduce((sum, i) => sum + i.price * i.quantity, 0),
     [cart]
@@ -83,10 +105,15 @@ export default function Cart({
             .map(
               (i) => `
               <tr>
-                <td>${i.name} x${i.quantity}</td>
-                <td style="text-align:right;">$${(i.price * i.quantity).toFixed(
-                  2
-                )}</td>
+                <td>${i.name} - ${i.sku}</td>
+                <td style="text-align:right;">
+                  ${
+                    Number((i.originalPrice ?? i.basePrice ?? i.price) || 0) !== Number(i.price || 0)
+                      ? `<span style="text-decoration: line-through;">$${Number(i.originalPrice ?? i.basePrice ?? i.price).toFixed(2)}</span>
+                         ${Number(i.price).toFixed(2)} × ${Number(i.quantity)} = ${(Number(i.price) * Number(i.quantity)).toFixed(2)}`
+                      : `${Number(i.price).toFixed(2)} × ${Number(i.quantity)} = ${(Number(i.price) * Number(i.quantity)).toFixed(2)}`
+                  }
+                </td>
               </tr>`
             )
             .join("")}
@@ -95,7 +122,7 @@ export default function Cart({
         <table>
           <tr>
             <td>Subtotal</td>
-            <td style="text-align:right;">$${(
+            <td style="text-align:right;">${(
               sale.subtotal ?? sale.total
             ).toFixed(2)}</td>
           </tr>
@@ -103,7 +130,7 @@ export default function Cart({
             typeof sale.vat === "number"
               ? `<tr>
             <td>VAT</td>
-            <td style="text-align:right;">$${sale.vat.toFixed(2)}</td>
+            <td style="text-align:right;">${sale.vat.toFixed(2)}</td>
           </tr>`
               : ""
           }
@@ -111,19 +138,33 @@ export default function Cart({
             typeof sale.serviceFee === "number"
               ? `<tr>
             <td>Service Fee</td>
-            <td style="text-align:right;">$${sale.serviceFee.toFixed(2)}</td>
+            <td style="text-align:right;">${sale.serviceFee.toFixed(2)}</td>
           </tr>`
               : ""
           }
           <tr>
             <td class="total">Final</td>
-            <td class="total" style="text-align:right;">$${(
+            <td class="total" style="text-align:right;">${(
               sale.finalTotal ?? sale.total
             ).toFixed(2)}</td>
           </tr>
+          ${typeof sale.payments?.cash === 'number' || typeof sale.payments?.bank === 'number' ? `
+          <tr>
+            <td>Paid Cash</td>
+            <td style="text-align:right;">${Number(sale.payments?.cash || 0).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>Paid Bank</td>
+            <td style="text-align:right;">${Number(sale.payments?.bank || 0).toFixed(2)}</td>
+          </tr>` : ''}
         </table>
         <div class="line"></div>
-        <div style="text-align:center;">Sale #${sale._id?.slice(-4)}</div>
+        <table>
+          <tr>
+            <td>Sale No.</td>
+            <td style="text-align:right;">${sale.saleNumber ?? ''}</td>
+          </tr>
+        </table>
         <div style="text-align:center;">Thank you for your purchase!</div>
         </div>
       </body>
@@ -161,11 +202,18 @@ export default function Cart({
               <div className="font-semibold w-24 text-left">{i.name}</div>
               <div className="text-xs w-24 text-gray-500 flex items-center gap-1">
                 <DollarSign className="w-3 h-3" />
-                {i.price.toFixed(2)}
+                {typeof i.originalPrice === 'number' && i.price !== i.originalPrice ? (
+                  <>
+                    <span className="line-through">{Number(i.originalPrice).toFixed(2)}</span>
+                    <span className="ml-1 text-gray-900">{Number(i.price).toFixed(2)}</span>
+                  </>
+                ) : (
+                  <span>{Number(i.price).toFixed(2)}</span>
+                )}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 w-32 justify-center">
+          <div className="flex flex-col items-center gap-2 w-32 justify-center">
             <button
               className="btn bg-blue-400 text-white px-2 rounded-lg flex items-center justify-center"
               onClick={() => updateQty(i._id, -1)}
@@ -180,9 +228,34 @@ export default function Cart({
               <Plus className="w-4 h-4" />
             </button>
           </div>
-          <div className="flex items-center gap-1 font-semibold text-green-700">
-            <DollarSign className="w-4 h-4" />
-            {(i.price * i.quantity).toFixed(2)}
+          <div className="flex items-center gap-3 ">
+            <div className="flex flex-col items-center gap-2">
+              <button
+                className="btn bg-gray-200 text-black rounded-lg"
+                onClick={() => updatePrice(i._id, Math.max((typeof i.minPrice === 'number' ? i.minPrice : 0), Number(i.price) - 1))}
+                disabled={typeof i.minPrice === 'number' && Number(i.price) <= i.minPrice}
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <div className="text-center font-semibold">
+                ${Number(i.price).toFixed(2)}
+              </div>
+              <button
+                className="btn bg-gray-200 text-black rounded-lg"
+                onClick={() => {
+                  const ceiling = typeof i.originalPrice === 'number' ? i.originalPrice : (typeof i.basePrice === 'number' ? i.basePrice : i.price);
+                  updatePrice(i._id, Math.min(ceiling, Number(i.price) + 1));
+                }}
+                disabled={(typeof i.originalPrice === 'number' ? Number(i.price) >= i.originalPrice : (typeof i.basePrice === 'number' ? Number(i.price) >= i.basePrice : false))}
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="text-xs text-gray-500 whitespace-nowrap">
+              {(typeof i.minPrice === 'number') && <span>Min ${Number(i.minPrice).toFixed(2)}</span>}
+              {(typeof i.minPrice === 'number') && <span> · </span>}
+              <span>Max ${Number(typeof i.originalPrice === 'number' ? i.originalPrice : (typeof i.basePrice === 'number' ? i.basePrice : i.price)).toFixed(2)}</span>
+            </div>
           </div>
           <button
             className="btn text-xs bg-red-400 text-white p-1.5 rounded-xl flex items-center justify-center"
@@ -206,11 +279,13 @@ export default function Cart({
           setLastOrderId(sale._id);
           printReceipt({
             _id: sale._id,
+            saleNumber: sale.saleNumber,
             items: sale.items?.length ? sale.items : cart,
             subtotal: sale.total,
             vat: sale.vat,
             serviceFee: sale.serviceFee,
             finalTotal: sale.finalTotal,
+            payments: sale.payments,
           });
           onSaleCompleted?.();
         }}

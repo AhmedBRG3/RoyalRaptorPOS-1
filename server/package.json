@@ -31,7 +31,8 @@
     "node-thermal-printer": "^4.5.0",
     "pdf-to-printer": "^5.6.0",
     "pdfkit": "^0.17.1",
-    "serverless-http": "^3.2.0"
+    "serverless-http": "^3.2.0",
+    "stack": "^0.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10",

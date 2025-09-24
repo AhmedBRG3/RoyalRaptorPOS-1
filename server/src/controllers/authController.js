@@ -49,7 +49,7 @@ async function register(req, res, next) {
 
 async function login(req, res, next) {
   try {
-    const { username, password, startingBalance = 0 } = req.body;
+    const { username, password, startingCash = 0, startingBank = 0 } = req.body;
     const user = await User.findOne({ username: (username || '').toLowerCase() });
     if (!user) return res.status(401).json({ message: 'invalid credentials' });
     const ok = await user.comparePassword(password || '');
@@ -57,7 +57,8 @@ async function login(req, res, next) {
     const token = signToken(user);
     // close any previous open sessions for this user just in case
     await Session.updateMany({ user: user._id, isOpen: true }, { isOpen: false, endTime: new Date() });
-    const session = await Session.create({ user: user._id, startingBalance: Number(startingBalance || 0), endingBalance: Number(startingBalance || 0), isOpen: true });
+    const now = new Date();
+    const session = await Session.create({ user: user._id, startingCash: Number(startingCash || 0), startingBank: Number(startingBank || 0), endingCash: Number(startingCash || 0), endingBank: Number(startingBank || 0), isOpen: true, startTime: now, lastPingAt: now });
     res.json({ token, user: { id: user.id, username: user.username, admin: user.admin, finance: user.finance }, sessionId: session.id });
   } catch (err) {
     next(err);

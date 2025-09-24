@@ -6,7 +6,7 @@ const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const os = require("os");
 const serverless = require("serverless-http");
-const { ensureSeeded } = require('./utils/bootstrap');
+const { ensureSeeded } = require("./utils/bootstrap");
 
 // Initialize MongoDB connection
 let isConnected = false;
@@ -68,7 +68,22 @@ mongoose.connection.on("disconnected", () => {
 const app = express();
 
 // ===== CORS configuration =====
-// CORS disabled for testing
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type,Authorization,X-Requested-With,Accept,Origin,X-Session-Id"
+  );
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,OPTIONS,PATCH"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // ===== Security Middleware =====
 app.use(
@@ -97,7 +112,9 @@ app.use(cookieParser());
 
 // Add request logging middleware
 app.use((req, res, next) => {
-  console.log(`[REQUEST] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
+  console.log(
+    `[REQUEST] ${req.method} ${req.url} - Origin: ${req.headers.origin}`
+  );
   next();
 });
 
@@ -110,46 +127,46 @@ app.use((req, res, next) => {
 
 // ===== Health Check Endpoints =====
 app.get("/api/health", (req, res) => {
-  console.log('[HEALTH] Health check requested');
-  res.json({ 
-    status: "ok", 
+  console.log("[HEALTH] Health check requested");
+  res.json({
+    status: "ok",
     service: "RoyalRaptorPOS",
     timestamp: new Date().toISOString(),
-    requestId: req.requestId
+    requestId: req.requestId,
   });
 });
 
 app.get("/api/test", (req, res) => {
-  console.log('[TEST] Test endpoint requested');
-  res.json({ 
-    status: "test endpoint working", 
+  console.log("[TEST] Test endpoint requested");
+  res.json({
+    status: "test endpoint working",
     timestamp: new Date().toISOString(),
     requestId: req.requestId,
-    env: process.env.NODE_ENV
+    env: process.env.NODE_ENV,
   });
 });
 
 // Simple test endpoint without database
 app.get("/api/simple-test", (req, res) => {
-  console.log('[SIMPLE-TEST] Simple test requested');
-  res.json({ 
-    status: "Simple test working", 
+  console.log("[SIMPLE-TEST] Simple test requested");
+  res.json({
+    status: "Simple test working",
     timestamp: new Date().toISOString(),
     requestId: req.requestId,
-    message: "No database connection required"
+    message: "No database connection required",
   });
 });
 
 // Test POST endpoint without authentication
 app.post("/api/test-post", (req, res) => {
-  console.log('[TEST-POST] Test POST requested');
-  console.log('[TEST-POST] Request body:', req.body);
-  res.json({ 
-    status: "Test POST working", 
+  console.log("[TEST-POST] Test POST requested");
+  console.log("[TEST-POST] Request body:", req.body);
+  res.json({
+    status: "Test POST working",
     timestamp: new Date().toISOString(),
     requestId: req.requestId,
     receivedBody: req.body,
-    message: "No authentication required"
+    message: "No authentication required",
   });
 });
 
@@ -159,6 +176,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const authRoutes = require("./routes/authRoutes");
 const saleRoutes = require("./routes/saleRoutes");
 const sessionRoutes = require("./routes/sessionRoutes");
+const accountingRoutes = require("./routes/accountingRoutes");
 // const barcodeRoutes = require("./routes/printBarCode"); // Temporarily disabled due to sharp module issues
 
 app.use("/api/auth", authRoutes);
@@ -166,6 +184,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/sales", saleRoutes);
 app.use("/api/sessions", sessionRoutes);
+app.use("/api/accounting", accountingRoutes);
 // app.use("/api/barcode", barcodeRoutes); // Temporarily disabled due to sharp module issues
 
 // ===== Error Handler =====
@@ -224,47 +243,52 @@ const handler = async (event, context) => {
   // Set context.callbackWaitsForEmptyEventLoop to false to prevent hanging
   context.callbackWaitsForEmptyEventLoop = false;
 
-  console.log('=== LAMBDA HANDLER START ===');
-  console.log('Lambda handler called with event:', JSON.stringify(event, null, 2));
-  console.log('Context:', JSON.stringify(context, null, 2));
+  console.log("=== LAMBDA HANDLER START ===");
+  console.log(
+    "Lambda handler called with event:",
+    JSON.stringify(event, null, 2)
+  );
+  console.log("Context:", JSON.stringify(context, null, 2));
 
   // Handle OPTIONS preflight requests
   const httpMethod = event.requestContext?.http?.method || event.httpMethod;
-  if (httpMethod === 'OPTIONS') {
-    console.log('Handling OPTIONS preflight request');
-    console.log('Event details:', {
+  if (httpMethod === "OPTIONS") {
+    console.log("Handling OPTIONS preflight request");
+    console.log("Event details:", {
       httpMethod: httpMethod,
       path: event.rawPath || event.path,
       headers: event.headers,
-      requestContext: event.requestContext
+      requestContext: event.requestContext,
     });
-    
+
     // Get the requested headers from the preflight request
-    const requestedHeaders = event.headers['access-control-request-headers'] || '';
-    console.log('Requested headers:', requestedHeaders);
-    
+    const requestedHeaders =
+      event.headers["access-control-request-headers"] || "";
+    console.log("Requested headers:", requestedHeaders);
+
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Requested-With,Accept,Origin,X-Session-Id',
-        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
-        'Access-Control-Allow-Credentials': 'true',
-        'Content-Type': 'application/json'
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers":
+          "Content-Type,Authorization,X-Requested-With,Accept,Origin,X-Session-Id",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS,PATCH",
+        "Access-Control-Allow-Credentials": "true",
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ message: 'OK' })
+      body: JSON.stringify({ message: "OK" }),
     };
   }
 
   // Log all non-OPTIONS requests
-  if (httpMethod !== 'OPTIONS') {
+  if (httpMethod !== "OPTIONS") {
     console.log(`Handling ${httpMethod} request`);
     console.log(`${httpMethod} Event details:`, {
       httpMethod: httpMethod,
       path: event.rawPath || event.path,
       headers: event.headers,
       body: event.body,
-      requestContext: event.requestContext
+      requestContext: event.requestContext,
     });
   }
 
@@ -272,61 +296,67 @@ const handler = async (event, context) => {
     // Ensure DB connection before handling request
     await connectDB();
     await ensureSeeded();
-    
+
     // Parse body if it's a Buffer (common issue with serverless-http)
-    if (event.body && typeof event.body === 'string') {
+    if (event.body && typeof event.body === "string") {
       try {
         event.body = JSON.parse(event.body);
       } catch (e) {
-        console.log('Failed to parse event.body as JSON:', e.message);
+        console.log("Failed to parse event.body as JSON:", e.message);
       }
     }
-    
-    console.log('About to call serverless(app) with event:', JSON.stringify(event, null, 2));
+
+    console.log(
+      "About to call serverless(app) with event:",
+      JSON.stringify(event, null, 2)
+    );
     const result = await serverless(app, {
       request: (request, event, context) => {
-        console.log('Serverless-http request middleware called');
-        console.log('Request details:', {
+        console.log("Serverless-http request middleware called");
+        console.log("Request details:", {
           method: request.method,
           url: request.url,
           headers: request.headers,
-          body: request.body
+          body: request.body,
         });
-        
+
         // Ensure body is properly parsed
         if (request.body && Buffer.isBuffer(request.body)) {
           try {
             request.body = JSON.parse(request.body.toString());
-            console.log('Parsed body from Buffer:', request.body);
+            console.log("Parsed body from Buffer:", request.body);
           } catch (e) {
-            console.log('Failed to parse request.body as JSON:', e.message);
+            console.log("Failed to parse request.body as JSON:", e.message);
           }
         }
         return request;
-      }
+      },
     })(event, context);
-    
+
     // Add CORS headers to all responses
     if (result && result.headers) {
-      result.headers['Access-Control-Allow-Origin'] = '*';
-      result.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With,Accept,Origin,X-Session-Id';
-      result.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH';
-      result.headers['Access-Control-Allow-Credentials'] = 'true';
+      result.headers["Access-Control-Allow-Origin"] = "*";
+      result.headers["Access-Control-Allow-Headers"] =
+        "Content-Type,Authorization,X-Requested-With,Accept,Origin,X-Session-Id";
+      result.headers["Access-Control-Allow-Methods"] =
+        "GET,POST,PUT,DELETE,OPTIONS,PATCH";
+      result.headers["Access-Control-Allow-Credentials"] = "true";
     }
-    
-    console.log('Lambda handler result:', JSON.stringify(result, null, 2));
-    console.log('=== LAMBDA HANDLER END ===');
+
+    console.log("Lambda handler result:", JSON.stringify(result, null, 2));
+    console.log("=== LAMBDA HANDLER END ===");
     return result;
   } catch (error) {
     console.error("Lambda handler error:", error);
     return {
       statusCode: 500,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Requested-With,Accept,Origin,X-Session-Id',
-        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
-        'Access-Control-Allow-Credentials': 'true',
-        'Content-Type': 'application/json'
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers":
+          "Content-Type,Authorization,X-Requested-With,Accept,Origin,X-Session-Id",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS,PATCH",
+        "Access-Control-Allow-Credentials": "true",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         error: "Internal Server Error",
@@ -342,23 +372,7 @@ module.exports.handler = handler;
 
 // Only start the server if not in Lambda
 if (process.env.NODE_ENV === "development") {
-  const localIP = getLocalExternalIPv4();
-  const PORT = process.env.PORT || 5000;
-  connectDB().then(() => ensureSeeded()).catch(() => {});
-
-  if (process.env.HTTPS === "true") {
-    const https = require("https");
-    const fs = require("fs");
-    const sslOptions = {
-      key: fs.readFileSync("./certs/localhost-key.pem"),
-      cert: fs.readFileSync("./certs/localhost.pem"),
-    };
-    https.createServer(sslOptions, app).listen(PORT, localIP, () => {
-      console.log(`Server running on https://${localIP}:${PORT}`);
-    });
-  } else {
-    app.listen(PORT, localIP, () => {
-      console.log(`Server running on http://${localIP}:${PORT}`);
-    });
-  }
+  app.listen("5050", "localhost", () => {
+    console.log(`Server running on http://localhost:5050}`);
+  });
 }

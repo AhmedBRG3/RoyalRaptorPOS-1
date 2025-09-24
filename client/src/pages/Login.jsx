@@ -7,7 +7,8 @@ export default function Login() {
   const [form, setForm] = useState({
     username: "",
     password: "",
-    startingBalance: "",
+    startingCash: "",
+    startingBank: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -20,7 +21,7 @@ export default function Login() {
     setError("");
     try {
       setLoading(true);
-      await login(form.username, form.password, form.startingBalance);
+      await login(form.username, form.password, form.startingCash, form.startingBank);
       navigate(from, { replace: true });
     } catch (e) {
       setError("Invalid credentials");
@@ -30,7 +31,7 @@ export default function Login() {
   };
 
   return (
-    <div className="p-6 max-w-sm mx-auto">
+    <div className="p-6 max-w-md mx-auto">
       <h2 className="text-2xl font-bold mb-6">Login</h2>
 
       <form onSubmit={onSubmit} className="grid gap-3">
@@ -55,18 +56,31 @@ export default function Login() {
             className="border rounded-md px-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
           />
         </div>
-        <div className="relative">
-          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            placeholder="Starting balance"
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.startingBalance}
-            onChange={(e) => setForm({ ...form, startingBalance: e.target.value })}
-            required
-            className="border rounded-md px-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-          />
+        <div className="grid grid-cols-2 gap-2">
+          <div className="relative">
+            <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              placeholder="Starting cash"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.startingCash}
+              onChange={(e) => setForm({ ...form, startingCash: e.target.value })}
+              className="border rounded-md px-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+            />
+          </div>
+          <div className="relative">
+            <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              placeholder="Starting bank"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.startingBank}
+              onChange={(e) => setForm({ ...form, startingBank: e.target.value })}
+              className="border rounded-md px-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+            />
+          </div>
         </div>
         <button
           type="submit"

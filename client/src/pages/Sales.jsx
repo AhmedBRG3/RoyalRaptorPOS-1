@@ -66,6 +66,13 @@ export default function Sales() {
           <table className="w-full border-collapse table-fixed">
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-gray-300 bg-gray-50">
+                <th className="text-center p-2">
+                  <div className="flex items-center gap-1 justify-center">
+                    <Receipt className="w-4 h-4" /> Sale ID
+                  </div>
+                </th>
+                <th className="text-center p-2 w-1/7">Cash</th>
+                <th className="text-center p-2 w-1/7">Bank</th>
                 <th className="text-center p-2 w-1/7">
                   <div className="flex items-center gap-1 justify-center">
                     <User className="w-4 h-4" /> User
@@ -109,6 +116,13 @@ export default function Sales() {
                   key={s._id}
                   className="border-b border-gray-200 hover:bg-gray-50"
                 >
+                  <td className="p-2 text-center">
+                    {typeof s.saleNumber !== 'undefined' && s.saleNumber !== null
+                      ? s.saleNumber
+                      : (s._id || '').slice(-6)}
+                  </td>
+                  <td className="p-2 w-1/7 text-center">{Number(s.payments?.cash || 0).toFixed(2)}</td>
+                  <td className="p-2 w-1/7 text-center">{Number(s.payments?.bank || 0).toFixed(2)}</td>
                   <td className="p-2 w-1/7 text-center">
                     {s.user?.username || "-"}
                   </td>

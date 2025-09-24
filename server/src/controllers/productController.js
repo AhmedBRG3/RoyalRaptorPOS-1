@@ -20,8 +20,8 @@ async function getProducts(req, res, next) {
 
 async function createProduct(req, res, next) {
   try {
-    const { name, sku, price, quantity, sold } = req.body;
-    const product = await Product.create({ name, sku, price, quantity, sold });
+    const { name, sku, price, quantity, sold, minPrice } = req.body;
+    const product = await Product.create({ name, sku, price, quantity, sold, minPrice });
     res.status(201).json(product);
   } catch (error) {
     next(error);

@@ -36,6 +36,7 @@ export default function ProductsAdmin() {
     name: "",
     sku: "",
     price: "",
+    minPrice: "",
     quantity: "",
     sold: "",
   });
@@ -66,7 +67,7 @@ export default function ProductsAdmin() {
   }, []);
 
   const resetForm = () => {
-    setForm({ name: "", sku: "", price: "", quantity: "", sold: "" });
+    setForm({ name: "", sku: "", price: "", minPrice: "", quantity: "", sold: "" });
     setEditingId("");
   };
 
@@ -84,6 +85,7 @@ export default function ProductsAdmin() {
       name: form.name.trim(),
       sku: form.sku.trim(),
       price: Number(form.price || 0),
+      minPrice: form.minPrice === '' ? undefined : Number(form.minPrice || 0),
       quantity: Number(form.quantity || 0),
       sold: Number(form.sold || 0),
     };
@@ -114,6 +116,7 @@ export default function ProductsAdmin() {
       name: p.name,
       sku: p.sku,
       price: p.price,
+      minPrice: p.minPrice ?? "",
       quantity: p.quantity ?? 0,
       sold: p.sold ?? 0,
     });
@@ -240,6 +243,36 @@ export default function ProductsAdmin() {
 
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium flex items-center gap-1">
+            <DollarSign className="w-4 h-4" aria-hidden="true" /> Min Price
+          </span>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={form.minPrice}
+            onChange={handleChange("minPrice")}
+            disabled={saving}
+            className="border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-sm font-medium flex items-center gap-1">
+            <DollarSign className="w-4 h-4" aria-hidden="true" /> Max Price
+          </span>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={form.maxPrice}
+            onChange={handleChange("maxPrice")}
+            disabled={saving}
+            className="border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-sm font-medium flex items-center gap-1">
             <Layers className="w-4 h-4" aria-hidden="true" /> Quantity
           </span>
           <input
@@ -320,6 +353,11 @@ export default function ProductsAdmin() {
               </th>
               <th className="text-center p-2 w-1/6">
                 <span className="flex items-center gap-1 justify-center">
+                  <DollarSign className="w-4 h-4" aria-hidden="true" /> Min
+                </span>
+              </th>
+              <th className="text-center p-2 w-1/6">
+                <span className="flex items-center gap-1 justify-center">
                   <Layers className="w-4 h-4" aria-hidden="true" /> Quantity
                 </span>
               </th>
@@ -350,6 +388,8 @@ export default function ProductsAdmin() {
                 <td className="p-2 w-1/6 text-center">
                   ${Number(p.price ?? 0).toFixed(2)}
                 </td>
+                <td className="p-2 w-1/6 text-center">{typeof p.minPrice === 'number' ? `$${Number(p.minPrice).toFixed(2)}` : '-'}</td>
+                
                 <td className="p-2 w-1/6 text-center">{p.quantity ?? 0}</td>
                 <td className="p-2 w-1/6 text-center">{p.sold ?? 0}</td>
                 <td className="p-2 w-1/6 text-center">

@@ -34,8 +34,10 @@ export default function Sessions() {
         username: session.user?.username || 'Unknown',
         startTime: new Date(session.startTime).toLocaleString(),
         endTime: session.endTime ? new Date(session.endTime).toLocaleString() : 'Open',
-        startingBalance: Number(session.startingBalance).toFixed(2),
-        endingBalance: Number(session.endingBalance).toFixed(2),
+        startingCash: Number(session.startingCash || 0).toFixed(2),
+        startingBank: Number(session.startingBank || 0).toFixed(2),
+        endingCash: Number(session.endingCash || 0).toFixed(2),
+        endingBank: Number(session.endingBank || 0).toFixed(2),
         totalSales: session.sales?.length || 0,
         totalItems: totalItems,
         totalRevenue: totalRevenue.toFixed(2),
@@ -47,8 +49,10 @@ export default function Sessions() {
       { key: 'username', header: 'User' },
       { key: 'startTime', header: 'Start Time' },
       { key: 'endTime', header: 'End Time' },
-      { key: 'startingBalance', header: 'Starting Balance' },
-      { key: 'endingBalance', header: 'Ending Balance' },
+      { key: 'startingCash', header: 'Starting Cash' },
+      { key: 'startingBank', header: 'Starting Bank' },
+      { key: 'endingCash', header: 'Ending Cash' },
+      { key: 'endingBank', header: 'Ending Bank' },
       { key: 'totalSales', header: 'Total Sales' },
       { key: 'totalItems', header: 'Total Items' },
       { key: 'totalRevenue', header: 'Total Revenue' },
@@ -103,11 +107,11 @@ export default function Sessions() {
                 <div className="text-right">
                   <div className="font-medium flex items-center gap-1">
                     <DollarSign className="w-4 h-4" />
-                    Starting: ${Number(s.startingBalance).toFixed(2)}
+                    Starting Cash: ${Number(s.startingCash || 0).toFixed(2)} | Starting Bank: ${Number(s.startingBank || 0).toFixed(2)}
                   </div>
                   <div className="font-medium flex items-center gap-1">
                     <DollarSign className="w-4 h-4" />
-                    Ending: ${Number(s.endingBalance).toFixed(2)}
+                    Ending Cash: ${Number(s.endingCash || 0).toFixed(2)} | Ending Bank: ${Number(s.endingBank || 0).toFixed(2)}
                   </div>
                 </div>
               </div>

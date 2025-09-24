@@ -6,6 +6,8 @@ export default function SalePanel({ cart, setCart, onPlaced, registerPlaceSale }
   const [vat, setVat] = useState(0);
   const [serviceFee, setServiceFee] = useState(0);
   const [placing, setPlacing] = useState(false);
+  const [cash, setCash] = useState('');
+  const [bank, setBank] = useState('');
 
   const subtotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.quantity, 0), [cart]);
   const vatPct = Number(vat || 0);
@@ -17,13 +19,22 @@ export default function SalePanel({ cart, setCart, onPlaced, registerPlaceSale }
   const placeSale = async () => {
     try {
       setPlacing(true);
+      const cashNum = Number(cash || 0);
+      const bankNum = Number(bank || 0);
+      if ((cashNum + bankNum).toFixed(2) !== finalTotal.toFixed(2)) {
+        alert('Cash + Bank must equal the sale total');
+        return;
+      }
       const sale = await createSale({
-        items: cart.map((i) => ({ productId: i._id, quantity: i.quantity })),
+        items: cart.map((i) => ({ productId: i._id, quantity: i.quantity, price: i.price })),
         // Send percentages; server will compute and store amounts
         vat: vatPct,
         serviceFee: servicePct,
+        payments: { cash: cashNum, bank: bankNum },
       });
       setCart([]);
+      setCash('');
+      setBank('');
       onPlaced?.(sale);
     } catch (e) {
       const message = e?.response?.data?.message || 'Sale failed';
@@ -57,6 +68,15 @@ export default function SalePanel({ cart, setCart, onPlaced, registerPlaceSale }
           <BadgeDollarSign className="w-4 h-4 text-green-500" />
           Service fee (%): <input type="number" step="0.01" value={serviceFee} onChange={(e) => setServiceFee(e.target.value)} style={{ width: 100 }} />
         </label>
+        <div className="grid grid-cols-2 gap-2">
+          <label className="flex items-center gap-2">
+            Cash: <input type="number" step="0.01" value={cash} onChange={(e) => setCash(e.target.value)} className="border rounded px-2 py-1 w-28" />
+          </label>
+          <label className="flex items-center gap-2">
+            Bank: <input type="number" step="0.01" value={bank} onChange={(e) => setBank(e.target.value)} className="border rounded px-2 py-1 w-28" />
+          </label>
+        </div>
+        <div className="text-xs text-gray-600">Cash + Bank must equal ${finalTotal.toFixed(2)}</div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontWeight: 700 }}>
         <span className="flex items-center gap-1"><Receipt className="w-4 h-4 text-gray-700" /> Final total</span>

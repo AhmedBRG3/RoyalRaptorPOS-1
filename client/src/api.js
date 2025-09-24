@@ -33,9 +33,10 @@ export async function deleteProduct(id, editPassword) {
   await api.delete(`/products/${id}`, { headers });
 }
 
-export async function login(username, password, startingBalance) {
+export async function login(username, password, startingCash, startingBank) {
   const payload = { username, password };
-  if (typeof startingBalance !== 'undefined') payload.startingBalance = Number(startingBalance || 0);
+  if (typeof startingCash !== 'undefined') payload.startingCash = Number(startingCash || 0);
+  if (typeof startingBank !== 'undefined') payload.startingBank = Number(startingBank || 0);
   const { data } = await api.post('/auth/login', payload);
   localStorage.setItem('token', data.token);
   localStorage.setItem('user', JSON.stringify(data.user));
@@ -70,10 +71,12 @@ export async function createOrder(items) {
   return data;
 }
 
-export async function createSale({ items, vat = 0, serviceFee = 0 }) {
+export async function createSale({ items, vat = 0, serviceFee = 0, payments }) {
   const sessionId = localStorage.getItem('sessionId');
   const headers = sessionId ? { 'X-Session-Id': sessionId } : undefined;
-  const { data } = await api.post('/sales', { items, vat, serviceFee }, { headers });
+  const body = { items, vat, serviceFee };
+  if (payments) body.payments = payments;
+  const { data } = await api.post('/sales', body, { headers });
   return data;
 }
 
@@ -101,6 +104,65 @@ export async function closeSession() {
     // Optionally handle error
   }
   localStorage.removeItem('sessionId');
+}
+
+export async function keepSessionAlive() {
+  const sessionId = localStorage.getItem('sessionId');
+  if (!sessionId) return { ok: false, skipped: true };
+  try {
+    const headers = { 'X-Session-Id': sessionId };
+    const { data } = await api.post('/sessions/heartbeat', {}, { headers });
+    return data;
+  } catch (e) {
+    // If heartbeat fails with 404/409/401, surface minimal info
+    return { ok: false, error: e?.response?.data?.message || e.message };
+  }
+}
+
+// ===== Accounting =====
+export async function fetchAccounts() {
+  const { data } = await api.get('/accounting/accounts');
+  return data;
+}
+
+export async function createAccount(account) {
+  const { data } = await api.post('/accounting/accounts', account);
+  return data;
+}
+
+export async function updateAccount(id, updates) {
+  const { data } = await api.put(`/accounting/accounts/${id}`, updates);
+  return data;
+}
+
+export async function deleteAccount(id) {
+  const { data } = await api.delete(`/accounting/accounts/${id}`);
+  return data;
+}
+
+export async function fetchTransactions(params) {
+  const { data } = await api.get('/accounting/transactions', { params });
+  return data;
+}
+
+export async function fetchSalesByType(params) {
+  const { data } = await api.get('/accounting/transactions/sales-by-type', { params });
+  return data;
+}
+
+export async function createTransaction(txn) {
+  const { data } = await api.post('/accounting/transactions', txn);
+  return data;
+}
+
+export async function updateTransaction(id, updates) {
+  const { data } = await api.put(`/accounting/transactions/${id}`, updates);
+  return data;
+}
+
+export async function deleteTransaction(id) {
+  const { data } = await api.delete(`/accounting/transactions/${id}`);
+  return data;
 }
 
 

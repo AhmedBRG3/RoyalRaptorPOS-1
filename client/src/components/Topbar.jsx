@@ -126,6 +126,12 @@ export default function Topbar({
             </NavButton>
           )}
 
+          {isFinance && (
+            <NavButton href="/accounting" icon={<DollarSign className="w-4 h-4 mr-1" />}>
+              Accounting
+            </NavButton>
+          )}
+
           <button
             className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1"
             onClick={logout}

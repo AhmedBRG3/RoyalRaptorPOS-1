@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
-import { fetchProducts, createOrder, login } from "./api";
+import { fetchProducts, createOrder, login, keepSessionAlive } from "./api";
 import Topbar from "./components/Topbar.jsx";
 import {
   Package,
@@ -71,7 +71,8 @@ function App() {
         String(i._id) === String(p._id) ? { ...i, quantity: i.quantity + 1 } : i
       );
     } else {
-      updatedCart = [...cartRef.current, { ...p, quantity: 1 }];
+      const defaultPrice = p.price;
+      updatedCart = [...cartRef.current, { ...p, price: defaultPrice, originalPrice: p.price, quantity: 1 }];
     }
 
     // Update both the ref and the state
@@ -167,6 +168,20 @@ function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
+  }, []);
+
+  // Heartbeat to keep the session open
+  useEffect(() => {
+    let timer;
+    const tick = async () => {
+      try {
+        await keepSessionAlive();
+      } catch {}
+      timer = setTimeout(tick, 60 * 1000);
+    };
+    // Start immediately to avoid initial 60s gap
+    tick();
+    return () => timer && clearTimeout(timer);
   }, []);
 
   return (

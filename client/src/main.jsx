@@ -13,19 +13,11 @@ import Sessions from "./pages/Sessions.jsx";
 import ProductsAdmin from "./pages/ProductsAdmin.jsx";
 import Finance from "./pages/Finance.jsx";
 import RequireFinance from "./components/RequireFinance.jsx";
-import HomePage from "./pages/Home.jsx";
-import BusSolutions from "./pages/BusSolutions.jsx"
-import Marketing from "./pages/Marketing.jsx"
-import BusSetup from "./pages/BusSetup.jsx"
-
+import Accounting from "./pages/Accounting.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/home12" element={<HomePage />} />
-        <Route path="/setup" element={<BusSetup />} />
-        <Route path="/marketing" element={<Marketing />} />
-        <Route path="/solutions" element={<BusSolutions />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -66,6 +58,7 @@ createRoot(document.getElementById("root")).render(
             </RequireAuth>
           }
         />
+
         <Route
           path="/finance"
           element={
@@ -81,6 +74,16 @@ createRoot(document.getElementById("root")).render(
           element={
             <RequireAuth>
               <App />
+            </RequireAuth>
+          }
+        />
+                <Route
+          path="/accounting"
+          element={
+            <RequireAuth>
+              <RequireFinance>
+                <Accounting />
+              </RequireFinance>
             </RequireAuth>
           }
         />
