@@ -175,6 +175,7 @@ function App() {
     let timer;
     const tick = async () => {
       try {
+
         await keepSessionAlive();
       } catch {}
       timer = setTimeout(tick, 60 * 1000);

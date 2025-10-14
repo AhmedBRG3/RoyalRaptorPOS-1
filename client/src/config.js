@@ -1,13 +1,11 @@
 // Centralized frontend config with environment support
 const isDevelopment = import.meta.env.DEV;
 
-// Use local server for development, AWS API Gateway for production
-// export const API_URL = "https://r0gfamvyd8.execute-api.eu-west-2.amazonaws.com/";
-export const API_URL = "http://localhost:5050";
+// Prefer environment variable; fall back to sensible defaults per environment
+const ENV_API_URL = import.meta.env.VITE_API_URL;
+const DEFAULT_DEV_URL = "http://localhost:5050";
+const DEFAULT_PROD_URL = "https://r0gfamvyd8.execute-api.eu-west-2.amazonaws.com";
 
-// Fallback to localhost if no environment variable is set
-export const getApiUrl = () => {
-  // In production, use the environment variable or your deployed API Gateway URL
-  // return "https://r0gfamvyd8.execute-api.eu-west-2.amazonaws.com/";
-  return "http://localhost:5050"
-};
+export const API_URL = ENV_API_URL || (isDevelopment ? DEFAULT_DEV_URL : DEFAULT_PROD_URL);
+
+export const getApiUrl = () => API_URL;

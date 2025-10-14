@@ -185,52 +185,6 @@
               }
             }
           },
-          "EnterpriseLogAccessIamRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "AWS": "arn:aws:iam::802587217904:root"
-                    },
-                    "Action": "sts:AssumeRole",
-                    "Condition": {
-                      "StringEquals": {
-                        "sts:ExternalId": "ServerlessEnterprise-8904bf2f-0ae9-4252-a5d5-5b2c5b03be32"
-                      }
-                    }
-                  }
-                ]
-              },
-              "Policies": [
-                {
-                  "PolicyName": "LogFilterAccess",
-                  "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "logs:FilterLogEvents"
-                        ],
-                        "Resource": [
-                          {
-                            "Fn::GetAtt": [
-                              "ApiLogGroup",
-                              "Arn"
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          },
           "ApiLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -238,9 +192,9 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/RoyalRaptorPOS/dev/1755513378819-2025-08-18T10:36:18.819Z/RoyalRaptorPOS.zip"
+                "S3Key": "serverless/RoyalRaptorPOS/dev/1759655682807-2025-10-05T09:14:42.807Z/RoyalRaptorPOS.zip"
               },
-              "Handler": "s_api.handler",
+              "Handler": "src/app.handler",
               "Runtime": "nodejs22.x",
               "FunctionName": "RoyalRaptorPOS-dev-api",
               "MemorySize": 1024,
@@ -274,14 +228,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersionQXXaGH2M5Y4ag1TbYiDwdaJKckpUIxnD3TbUm1ayo": {
+          "ApiLambdaVersionL5PRJA63pXzntRU7131tIsONqiYKWjGWotL02pe4": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "6cr4IhfISHl1yhjtWULcx64IaV6t9RCCfwqPkcGJo4w="
+              "CodeSha256": "Ux6cZXqySvc4rYCTX7wAGqKfNfSUtAVbxIWQZoqr6Zc="
             }
           },
           "HttpApi": {
@@ -289,12 +243,6 @@
             "Properties": {
               "Name": "dev-RoyalRaptorPOS",
               "ProtocolType": "HTTP"
-            }
-          },
-          "HttpApiLogGroup": {
-            "Type": "AWS::Logs::LogGroup",
-            "Properties": {
-              "LogGroupName": "/aws/http-api/RoyalRaptorPOS-dev"
             }
           },
           "HttpApiStage": {
@@ -307,18 +255,8 @@
               "AutoDeploy": true,
               "DefaultRouteSettings": {
                 "DetailedMetricsEnabled": false
-              },
-              "AccessLogSettings": {
-                "DestinationArn": {
-                  "Fn::GetAtt": [
-                    "HttpApiLogGroup",
-                    "Arn"
-                  ]
-                },
-                "Format": "{\"requestTime\":\"$context.requestTime\",\"requestId\":\"$context.requestId\",\"apiId\":\"$context.apiId\",\"resourcePath\":\"$context.routeKey\",\"path\":\"$context.path\",\"httpMethod\":\"$context.httpMethod\",\"stage\":\"$context.stage\",\"status\":\"$context.status\",\"integrationStatus\":\"$context.integrationStatus\",\"integrationLatency\":\"$context.integrationLatency\",\"responseLatency\":\"$context.responseLatency\",\"responseLength\":\"$context.responseLength\",\"errorMessage\":\"$context.error.message\",\"format\":\"SLS_HTTP_API_LOG\",\"version\":\"1.0.0\"}"
               }
-            },
-            "DependsOn": "HttpApiLogGroup"
+            }
           },
           "ApiLambdaPermissionHttpApi": {
             "Type": "AWS::Lambda::Permission",
@@ -402,21 +340,10 @@
               "Name": "sls-RoyalRaptorPOS-dev-ServerlessDeploymentBucketName"
             }
           },
-          "EnterpriseLogAccessIamRole": {
-            "Value": {
-              "Fn::GetAtt": [
-                "EnterpriseLogAccessIamRole",
-                "Arn"
-              ]
-            },
-            "Export": {
-              "Name": "sls-RoyalRaptorPOS-dev-EnterpriseLogAccessIamRole"
-            }
-          },
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionQXXaGH2M5Y4ag1TbYiDwdaJKckpUIxnD3TbUm1ayo"
+              "Ref": "ApiLambdaVersionL5PRJA63pXzntRU7131tIsONqiYKWjGWotL02pe4"
             },
             "Export": {
               "Name": "sls-RoyalRaptorPOS-dev-ApiLambdaFunctionQualifiedArn"
@@ -540,17 +467,12 @@
           }
         }
       },
-      "logs": {
-        "httpApi": {
-          "format": "{\"requestTime\":\"$context.requestTime\",\"requestId\":\"$context.requestId\",\"apiId\":\"$context.apiId\",\"resourcePath\":\"$context.routeKey\",\"path\":\"$context.path\",\"httpMethod\":\"$context.httpMethod\",\"stage\":\"$context.stage\",\"status\":\"$context.status\",\"integrationStatus\":\"$context.integrationStatus\",\"integrationLatency\":\"$context.integrationLatency\",\"responseLatency\":\"$context.responseLatency\",\"responseLength\":\"$context.responseLength\",\"errorMessage\":\"$context.error.message\",\"format\":\"SLS_HTTP_API_LOG\",\"version\":\"1.0.0\"}"
-        }
-      },
       "vpc": {}
     },
     "pluginsData": {},
     "functions": {
       "api": {
-        "handler": "s_api.handler",
+        "handler": "src/app.handler",
         "events": [
           {
             "httpApi": {
@@ -568,15 +490,13 @@
         "memory": 1024,
         "runtime": "nodejs22.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersionQXXaGH2M5Y4ag1TbYiDwdaJKckpUIxnD3TbUm1ayo"
+        "versionLogicalId": "ApiLambdaVersionL5PRJA63pXzntRU7131tIsONqiYKWjGWotL02pe4"
       }
     },
     "configValidationMode": "warn",
     "serviceFilename": "serverless.yml",
     "initialServerlessConfig": {
       "service": "RoyalRaptorPOS",
-      "org": "omartest",
-      "app": "rrp",
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
       },
@@ -584,17 +504,12 @@
         "$ref": "$[\"service\"][\"functions\"]"
       }
     },
-    "app": "rrp",
-    "org": "omartest",
     "layers": {},
-    "isDashboardMonitoringPreconfigured": true,
-    "isDashboardAppPreconfigured": true,
-    "orgUid": "8904bf2f-0ae9-4252-a5d5-5b2c5b03be32",
-    "appUid": "NVPSZz1DNCVyTstjpv",
-    "artifact": "/Users/omaralhusseni/projects/RoyalRaptorPOS/server/.serverless/RoyalRaptorPOS.zip"
+    "isDashboardMonitoringPreconfigured": false,
+    "artifact": "/Users/omarrafee/Desktop/RoyalRaptorPOS/server/.serverless/RoyalRaptorPOS.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/RoyalRaptorPOS/dev/1755513378819-2025-08-18T10:36:18.819Z",
+    "artifactDirectoryName": "serverless/RoyalRaptorPOS/dev/1759655682807-2025-10-05T09:14:42.807Z",
     "artifact": "RoyalRaptorPOS.zip"
   }
 }

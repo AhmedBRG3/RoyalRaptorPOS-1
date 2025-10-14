@@ -11,6 +11,7 @@ export default function Finance() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [expandedId, setExpandedId] = useState(null);
+  const [receiptQuery, setReceiptQuery] = useState("");
 
   const load = async () => {
     try {
@@ -37,6 +38,17 @@ export default function Finance() {
     if (toDate) {
       const toTs = new Date(toDate + 'T23:59:59.999').getTime();
       if (created > toTs) return false;
+    }
+    if (receiptQuery) {
+      const trimmed = receiptQuery.trim();
+      if (/^\d+$/.test(trimmed)) {
+        const target = Number(trimmed);
+        if (Number(s.saleNumber ?? NaN) !== target) return false;
+      } else {
+        const q = trimmed.toLowerCase();
+        const saleNoStr = String(s.saleNumber ?? "").toLowerCase();
+        if (!saleNoStr.includes(q)) return false;
+      }
     }
     return true;
   });
@@ -70,11 +82,22 @@ export default function Finance() {
     return asAmount;
   };
 
+  // Discount helpers: compute before/after price deltas
+  const getItemBase = (i) => Number((typeof i.basePrice === 'number' ? i.basePrice : i.price) || 0);
+  const saleDiscount = (s) => (s.items || []).reduce((sum, i) => {
+    const base = getItemBase(i);
+    const sold = Number(i.price || 0);
+    const qty = Number(i.quantity || 0);
+    const perUnit = Math.max(0, base - sold);
+    return sum + perUnit * qty;
+  }, 0);
+
   const totals = filtered.reduce(
     (acc, s) => {
       if (s.refunded) return acc;
       const { vat, service } = deriveAmounts(s);
-      acc.gross += s.total || 0;
+      acc.gross += s.total || 0; 
+      acc.discount += saleDiscount(s) || 0;
       acc.vat += vat || 0;
       acc.service += service || 0;
       acc.net += s.finalTotal || (s.total || 0) + (vat || 0) + (service || 0);
@@ -82,7 +105,7 @@ export default function Finance() {
       acc.bank += Number(s.payments?.bank || 0);
       return acc;
     },
-    { gross: 0, vat: 0, service: 0, net: 0, cash: 0, bank: 0 }
+    { gross: 0, discount: 0, vat: 0, service: 0, net: 0, cash: 0, bank: 0 }
   );
 
   const onExport = () => {
@@ -96,6 +119,7 @@ export default function Finance() {
       gross: Number(s.total || 0).toFixed(2),
       vat: Number(vat || 0).toFixed(2),
       service: Number(service || 0).toFixed(2),
+      discount: saleDiscount(s).toFixed(2),
       cash: Number(s.payments?.cash || 0).toFixed(2),
       bank: Number(s.payments?.bank || 0).toFixed(2),
       net: Number(s.finalTotal || (s.total || 0) + (vat || 0) + (service || 0)).toFixed(2),
@@ -110,6 +134,7 @@ export default function Finance() {
       { key: 'gross', header: 'Gross' },
       { key: 'vat', header: 'VAT' },
       { key: 'service', header: 'Service' },
+      { key: 'discount', header: 'Discount' },
       { key: 'cash', header: 'Cash' },
       { key: 'bank', header: 'Bank' },
       { key: 'net', header: 'Net' },
@@ -132,6 +157,15 @@ export default function Finance() {
               <span className="text-gray-500 text-sm">to</span>
               <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="text-sm outline-none" />
             </div>
+            <div className="bg-white border rounded px-2 py-1">
+              <input
+                type="text"
+                value={receiptQuery}
+                onChange={e => setReceiptQuery(e.target.value)}
+                placeholder="Receipt ID"
+                className="text-sm outline-none"
+              />
+            </div>
             <button onClick={onExport} className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm px-3 py-2 rounded flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4" /> Export
             </button>
@@ -149,6 +183,7 @@ export default function Finance() {
           <>
             <div className="grid grid-cols-6 gap-3 mb-6">
               <Stat title="Gross" value={totals.gross} />
+              <Stat title="Total Discount" value={totals.discount} />
               <Stat title="Total VAT" value={totals.vat} />
               <Stat title="Total Service Fees" value={totals.service} />
               <Stat title="Net" value={totals.net} emphasize />
@@ -169,6 +204,7 @@ export default function Finance() {
                     <Th className="text-right">Gross</Th>
                     <Th className="text-right">VAT (Amount)</Th>
                     <Th className="text-right">Service (Amount)</Th>
+                    <Th className="text-right">Discount</Th>
                     <Th className="text-right">Net</Th>
                     <Th>Status</Th>
                     <Th>Actions</Th>
@@ -190,6 +226,7 @@ export default function Finance() {
                           <Td className="text-right">{(s.total || 0).toFixed(2)}</Td>
                           <Td className="text-right">{Number(vat || 0).toFixed(2)}</Td>
                           <Td className="text-right">{Number(service || 0).toFixed(2)}</Td>
+                          <Td className="text-right">{saleDiscount(s).toFixed(2)}</Td>
                           <Td className="text-right font-semibold">{Number(s.finalTotal || (s.total || 0) + (vat || 0) + (service || 0)).toFixed(2)}</Td>
                           <Td>{s.refunded ? "Refunded" : "Completed"}</Td>
                           <Td>
@@ -203,7 +240,7 @@ export default function Finance() {
                         </tr>
                         {isExpanded ? (
                           <tr key={`${s._id}-items`} className="bg-gray-50 border-t">
-                            <td className="px-3 py-2 text-left" colSpan={12}>
+                            <td className="px-3 py-2 text-left" colSpan={13}>
                               <div className="text-sm">
                                 <div className="font-semibold mb-2">Items in receipt {s.saleNumber ?? '-'}</div>
                                 <div className="overflow-auto">
@@ -213,7 +250,9 @@ export default function Finance() {
                                     <th className="text-left px-2 py-1">Product</th>
                                     <th className="text-left px-2 py-1">SKU</th>
                                         <th className="text-right px-2 py-1">Qty</th>
+                                        <th className="text-right px-2 py-1">Base Price</th>
                                         <th className="text-right px-2 py-1">Price</th>
+                                        <th className="text-right px-2 py-1">Discount</th>
                                         <th className="text-right px-2 py-1">Line Total</th>
                                       </tr>
                                     </thead>
@@ -223,7 +262,9 @@ export default function Finance() {
                                       <td className="px-2 py-1">{i.name}</td>
                                       <td className="px-2 py-1">{i.product?.sku ?? '-'}</td>
                                           <td className="px-2 py-1 text-right">{i.quantity}</td>
+                                          <td className="px-2 py-1 text-right">{getItemBase(i).toFixed(2)}</td>
                                           <td className="px-2 py-1 text-right">{Number(i.price || 0).toFixed(2)}</td>
+                                          <td className="px-2 py-1 text-right">{Math.max(0, getItemBase(i) - Number(i.price || 0)).toFixed(2)}</td>
                                           <td className="px-2 py-1 text-right">{Number((i.price || 0) * (i.quantity || 0)).toFixed(2)}</td>
                                         </tr>
                                       ))}

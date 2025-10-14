@@ -1,6 +1,6 @@
 service: RoyalRaptorPOS
-org: omartest
-app: rrp
+# org: omartest
+# app: rrp
 
 provider:
   name: aws

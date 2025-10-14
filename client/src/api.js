@@ -107,6 +107,7 @@ export async function closeSession() {
 }
 
 export async function keepSessionAlive() {
+
   const sessionId = localStorage.getItem('sessionId');
   if (!sessionId) return { ok: false, skipped: true };
   try {
