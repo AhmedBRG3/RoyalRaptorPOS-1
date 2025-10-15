@@ -162,10 +162,10 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/RoyalRaptorPOS/dev/1759655682807-2025-10-05T09:14:42.807Z/RoyalRaptorPOS.zip"
+          "S3Key": "serverless/RoyalRaptorPOS/dev/1760519679079-2025-10-15T09:14:39.079Z/RoyalRaptorPOS.zip"
         },
         "Handler": "src/app.handler",
-        "Runtime": "nodejs22.x",
+        "Runtime": "nodejs20.x",
         "FunctionName": "RoyalRaptorPOS-dev-api",
         "MemorySize": 1024,
         "Timeout": 30,
@@ -178,7 +178,7 @@
             "ACCESS_TOKEN_EXPIRATION": "15m",
             "REFRESH_TOKEN_EXPIRATION": "30d",
             "CORS_ORIGIN": "http://localhost:5173",
-            "CLIENT_ORIGINS": "http://localhost:5173,http://localhost:5174,https://xlnhkzxmsa.execute-api.eu-west-2.amazonaws.com",
+            "CLIENT_ORIGINS": "http://localhost:5173,http://localhost:5174,https://r0gfamvyd8.execute-api.eu-west-2.amazonaws.com",
             "HTTPS": "true",
             "NODE_ENV": "production",
             "MASTER_PASSWORD": "123@@213312_321=23sfdSAV",
@@ -198,7 +198,7 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersionL5PRJA63pXzntRU7131tIsONqiYKWjGWotL02pe4": {
+    "ApiLambdaVersionTSGTI1IEYkTn1WF5IXv0Rj2H9cFwtJoD7mDC3yVR4M": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
@@ -316,7 +316,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersionL5PRJA63pXzntRU7131tIsONqiYKWjGWotL02pe4"
+        "Ref": "ApiLambdaVersionTSGTI1IEYkTn1WF5IXv0Rj2H9cFwtJoD7mDC3yVR4M"
       },
       "Export": {
         "Name": "sls-RoyalRaptorPOS-dev-ApiLambdaFunctionQualifiedArn"

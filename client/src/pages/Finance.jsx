@@ -12,6 +12,7 @@ export default function Finance() {
   const [toDate, setToDate] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [receiptQuery, setReceiptQuery] = useState("");
+  const [discountedOnly, setDiscountedOnly] = useState(false);
 
   const load = async () => {
     try {
@@ -49,6 +50,16 @@ export default function Finance() {
         const saleNoStr = String(s.saleNumber ?? "").toLowerCase();
         if (!saleNoStr.includes(q)) return false;
       }
+    }
+    if (discountedOnly) {
+      const discount = (s.items || []).reduce((sum, i) => {
+        const base = Number((typeof i.basePrice === 'number' ? i.basePrice : i.price) || 0);
+        const sold = Number(i.price || 0);
+        const qty = Number(i.quantity || 0);
+        const perUnit = Math.max(0, base - sold);
+        return sum + perUnit * qty;
+      }, 0);
+      if (discount <= 0) return false;
     }
     return true;
   });
@@ -165,6 +176,12 @@ export default function Finance() {
                 placeholder="Receipt ID"
                 className="text-sm outline-none"
               />
+            </div>
+            <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
+              <label className="text-sm flex items-center gap-1">
+                <input type="checkbox" checked={discountedOnly} onChange={e => setDiscountedOnly(e.target.checked)} />
+                Discounted only
+              </label>
             </div>
             <button onClick={onExport} className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm px-3 py-2 rounded flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4" /> Export

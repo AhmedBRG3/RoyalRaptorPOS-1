@@ -10,6 +10,29 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Global response handler: auto-logout on unauthorized
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    if (status === 401 || status === 403) {
+      const url = error?.config?.url || '';
+      // Avoid loops during auth calls
+      if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+        try {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('sessionId');
+        } catch {}
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export async function fetchProducts(q) {
   const params = q ? { q } : undefined;
   const { data } = await api.get('/products', { params });
